@@ -1,0 +1,377 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Segmenting and Clustering Neighborhoods in Toronto"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "First we import pandas and request\n",
+    "Then we get the data from URL and we remove the 'Not assigned' rows"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 144,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Postcode</th>\n",
+       "      <th>Borough</th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>M3A</td>\n",
+       "      <td>North York</td>\n",
+       "      <td>Parkwoods</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>M4A</td>\n",
+       "      <td>North York</td>\n",
+       "      <td>Victoria Village</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>M5A</td>\n",
+       "      <td>Downtown Toronto</td>\n",
+       "      <td>Harbourfront</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>M5A</td>\n",
+       "      <td>Downtown Toronto</td>\n",
+       "      <td>Regent Park</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>M6A</td>\n",
+       "      <td>North York</td>\n",
+       "      <td>Lawrence Heights</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  Postcode           Borough     Neighbourhood\n",
+       "2      M3A        North York         Parkwoods\n",
+       "3      M4A        North York  Victoria Village\n",
+       "4      M5A  Downtown Toronto      Harbourfront\n",
+       "5      M5A  Downtown Toronto       Regent Park\n",
+       "6      M6A        North York  Lawrence Heights"
+      ]
+     },
+     "execution_count": 144,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import requests\n",
+    "\n",
+    "url = \"https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M\"\n",
+    "response = requests.get(url)\n",
+    "\n",
+    "dfr = pd.read_html(response.content, header=0)[0]\n",
+    "dfx = dfr[dfr.Borough != 'Not assigned']\n",
+    "\n",
+    "dfx.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Then we search for rows with the same postcode and we concatenate the strings of Neighbourhood.\n",
+    "Then we create a new table starting from the old one and we drop duplicates."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 146,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Borough</th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "      <th>Postcode</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Parkwoods</td>\n",
+       "      <td>M3A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Victoria Village</td>\n",
+       "      <td>M4A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Downtown Toronto</td>\n",
+       "      <td>Harbourfront, Regent Park</td>\n",
+       "      <td>M5A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Lawrence Heights, Lawrence Manor</td>\n",
+       "      <td>M6A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>Queen's Park</td>\n",
+       "      <td>Not assigned</td>\n",
+       "      <td>M7A</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            Borough                     Neighbourhood Postcode\n",
+       "0        North York                         Parkwoods      M3A\n",
+       "1        North York                  Victoria Village      M4A\n",
+       "2  Downtown Toronto         Harbourfront, Regent Park      M5A\n",
+       "4        North York  Lawrence Heights, Lawrence Manor      M6A\n",
+       "6      Queen's Park                      Not assigned      M7A"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "df2 = dfx\n",
+    "label = ''\n",
+    "df3 = pd.DataFrame({'Postcode': [], 'Borough': [], 'Neighbourhood': []})\n",
+    "for index, row in df2.iterrows():\n",
+    "    label = ''\n",
+    "    ct = df2.loc[df2['Postcode'] == row[\"Postcode\"]]\n",
+    "    \n",
+    "\n",
+    "    #print(ct)\n",
+    "    i = 0\n",
+    "    for index, row in ct.iterrows():\n",
+    "        i += 1\n",
+    "        if (i > 1): label = label + ', '\n",
+    "        label = label +row['Neighbourhood']\n",
+    "#Postcode:  ct.iloc[0]['Postcode']\n",
+    "#Borough:  ct.iloc[0]['Borough']\n",
+    "#Neighbourhood: label\n",
+    "    df3 = df3.append({'Postcode': ct.iloc[0]['Postcode'], 'Borough': ct.iloc[0]['Borough'], 'Neighbourhood': label}, ignore_index=True)\n",
+    "\n",
+    "df3.drop_duplicates(subset=None, keep='first', inplace=True)\n",
+    "\n",
+    "\n",
+    "df3.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If we have Neighbourhood Not assigned, we change it with the value of Borough"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 149,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Borough</th>\n",
+       "      <th>Neighbourhood</th>\n",
+       "      <th>Postcode</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Parkwoods</td>\n",
+       "      <td>M3A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Victoria Village</td>\n",
+       "      <td>M4A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Downtown Toronto</td>\n",
+       "      <td>Harbourfront, Regent Park</td>\n",
+       "      <td>M5A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>North York</td>\n",
+       "      <td>Lawrence Heights, Lawrence Manor</td>\n",
+       "      <td>M6A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>Queen's Park</td>\n",
+       "      <td>Queen's Park</td>\n",
+       "      <td>M7A</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            Borough                     Neighbourhood Postcode\n",
+       "0        North York                         Parkwoods      M3A\n",
+       "1        North York                  Victoria Village      M4A\n",
+       "2  Downtown Toronto         Harbourfront, Regent Park      M5A\n",
+       "4        North York  Lawrence Heights, Lawrence Manor      M6A\n",
+       "6      Queen's Park                      Queen's Park      M7A"
+      ]
+     },
+     "execution_count": 149,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import numpy as np\n",
+    "df3['Neighbourhood'] = np.where(df3['Neighbourhood']== 'Not assigned', df3['Borough'], df3['Neighbourhood'])\n",
+    "df3.head()\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We use the shape function to display rows and columns numbers"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 153,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "We have 3 columns\n",
+      "We have 103 rows\n"
+     ]
+    }
+   ],
+   "source": [
+    "\n",
+    "print(\"We have %s columns\" % (df3.shape[1]))\n",
+    "print(\"We have %s rows\" % (df3.shape[0]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3.5",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
